@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#33FFFFFF">
+    <item>
+        <layer-list>
+            <!-- Shadow Layer -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="28dp" />
+                    <solid android:color="#1F000000" />
+                </shape>
+            </item>
+            <!-- Semi-transparent Glass Panel with Light Edge Stroke -->
+            <item android:bottom="2dp" android:left="2dp" android:right="2dp" android:top="2dp">
+                <shape android:shape="rectangle">
+                    <corners android:radius="26dp" />
+                    <gradient
+                        android:angle="135"
+                        android:endColor="#10FFFFFF"
+                        android:startColor="#2DFFFFFF" />
+                    <stroke
+                        android:width="1.2dp"
+                        android:color="#4DFFFFFF" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</ripple>

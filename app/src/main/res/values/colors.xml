@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Liquid Glass Palette -->
+    <color name="glass_white_10">#1AFFFFFF</color>
+    <color name="glass_white_15">#26FFFFFF</color>
+    <color name="glass_white_20">#33FFFFFF</color>
+    <color name="glass_white_30">#4DFFFFFF</color>
+    <color name="glass_white_50">#80FFFFFF</color>
+    <color name="glass_white_80">#CCFFFFFF</color>
+    <color name="glass_border">#40FFFFFF</color>
+    <color name="glass_border_focused">#8000C9FF</color>
+
+    <color name="water_cyan">#00C9FF</color>
+    <color name="water_teal">#92FE96</color>
+    <color name="water_blue">#0083B0</color>
+    <color name="water_dark">#0F2027</color>
+
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#D0E2EC</color>
+    <color name="text_hint">#90A4AE</color>
+
+    <color name="accent_gold">#FFD700</color>
+    <color name="accent_green">#00E676</color>
+    <color name="accent_red">#FF5252</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">PAMDES</string>
+    <string name="app_subtitle">Pengelola Air Minum Desa</string>
+
+    <string name="menu_tambah_pengguna">Tambah Pengguna</string>
+    <string name="menu_tambah_pengguna_desc">Kelola data pelanggan &amp; meteran awal air desa</string>
+
+    <string name="menu_tagihan_bulanan">Tagihan Bulanan</string>
+    <string name="menu_tagihan_bulanan_desc">Hitung &amp; cetak tagihan air pelanggan per bulan</string>
+
+    <string name="menu_rekap_bulanan">Rekap Bulanan</string>
+    <string name="menu_rekap_bulanan_desc">Laporan pemakaian &amp; penerimaan tagihan bulanan</string>
+
+    <string name="ringkasan_singkat">Ringkasan Sistem</string>
+    <string name="total_pelanggan">Total Pelanggan</string>
+    <string name="tarif_saat_ini">Tarif per m³</string>
+
+    <string name="label_nama">Nama Lengkap</string>
+    <string name="label_alamat">Alamat</string>
+    <string name="label_dusun">Dusun / RT / RW</string>
+    <string name="label_meteran_awal">Meteran Awal (7 Digit)</string>
+    <string name="label_meteran_lalu">Meteran Bulan Lalu</string>
+    <string name="label_meteran_ini">Meteran Bulan Ini</string>
+    <string name="label_pemakaian">Pemakaian Air</string>
+    <string name="label_total_bayar">Total Bayar Tagihan</string>
+    <string name="label_periode">Periode Tagihan</string>
+
+    <string name="btn_simpan">Simpan Data</string>
+    <string name="btn_simpan_tagihan">Simpan Tagihan</string>
+    <string name="btn_buka_pdf">Buka PDF</string>
+    <string name="btn_bagikan_pdf">Bagikan PDF</string>
+    <string name="btn_ekspor_pdf">Ekspor Rekap PDF</string>
+    <string name="btn_batal">Batal</string>
+    <string name="btn_hapus">Hapus</string>
+    <string name="btn_edit">Edit</string>
+
+    <string name="pengaturan_title">Pengaturan PAMDES</string>
+    <string name="label_nama_desa">Nama Desa (Header Struk/PDF)</string>
+    <string name="label_tarif_per_kubik">Tarif Air per Kubik (Rp/m³)</string>
+
+    <string name="cari_pelanggan_hint">Cari nama pelanggan...</string>
+    <string name="semua_dusun">Semua Dusun</string>
+</resources>

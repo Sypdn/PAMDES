@@ -1,0 +1,27 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme with Material 3 base & Liquid Glass styling -->
+    <style name="Theme.PAMDES" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand colors -->
+        <item name="colorPrimary">@color/water_cyan</item>
+        <item name="colorOnPrimary">@color/water_dark</item>
+        <item name="colorSecondary">@color/water_teal</item>
+        <item name="colorOnSecondary">@color/water_dark</item>
+
+        <!-- Status bar color & translucent system bars -->
+        <item name="android:statusBarColor">@color/water_dark</item>
+        <item name="android:navigationBarColor">@color/water_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/water_dark</item>
+    </style>
+
+    <!-- Glass Dialog Theme -->
+    <style name="GlassBottomSheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/GlassBottomSheetStyle</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="GlassBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+</resources>
