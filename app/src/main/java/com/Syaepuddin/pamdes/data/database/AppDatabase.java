@@ -11,7 +11,7 @@ import com.Syaepuddin.pamdes.data.dao.TagihanDao;
 import com.Syaepuddin.pamdes.data.model.Pelanggan;
 import com.Syaepuddin.pamdes.data.model.Tagihan;
 
-@Database(entities = {Pelanggan.class, Tagihan.class}, version = 1, exportSchema = false)
+@Database(entities = {Pelanggan.class, Tagihan.class}, version = 3, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;

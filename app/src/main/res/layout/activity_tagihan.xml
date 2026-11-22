@@ -111,7 +111,7 @@
                             android:textColor="@color/white"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            tools:text="Budi Santoso" />
+                            tools:text="Mahtum" />
 
                         <TextView
                             android:id="@+id/tvInfoDusunAlamat"
@@ -120,7 +120,17 @@
                             android:layout_marginTop="2dp"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp"
-                            tools:text="Dusun Krajan • Jl. Mawar No. 12" />
+                            tools:text="Wilayah: Mahtum • Jln. Wanasaba Karang Baru KM. 3" />
+
+                        <TextView
+                            android:id="@+id/tvInfoKategoriNoSam"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/water_teal"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            tools:text="Jenis Tarif: Pengusaha (Rp 1.000/m³) • SAM-0001" />
 
                         <View
                             android:layout_width="match_parent"
@@ -148,7 +158,7 @@
                                 android:textColor="@color/accent_gold"
                                 android:textSize="15sp"
                                 android:textStyle="bold"
-                                tools:text="0000001 m³" />
+                                tools:text="0000100 m³" />
                         </RelativeLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -188,7 +198,7 @@
                             android:textColor="@color/water_cyan"
                             android:textSize="13sp"
                             android:textStyle="bold"
-                            tools:text="Nopember 2026" />
+                            tools:text="November 2026" />
                     </RelativeLayout>
 
                     <!-- Input Meteran Bulan Ini -->
@@ -205,7 +215,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:background="@drawable/bg_glass_input"
-                        android:hint="Masukkan angka meteran saat ini..."
+                        android:hint="Masukkan angka meteran saat ini (Meter Akhir)"
                         android:inputType="number"
                         android:maxLength="7"
                         android:paddingHorizontal="16dp"
@@ -230,7 +240,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/label_pemakaian"
+                            android:text="Pakai Air (m³)"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 
@@ -248,17 +258,84 @@
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp">
+                        android:layout_marginTop="6dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tarif / m³"
+                            android:text="Harga Perkubikasi"
                             android:textColor="@color/text_secondary"
                             android:textSize="13sp" />
 
                         <TextView
                             android:id="@+id/tvTarifPerKubik"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:text="Rp500 / m³"
+                            android:textColor="@color/white"
+                            android:textSize="14sp" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Jumlah Rp. (Air)"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/tvJumlahAirRp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:text="Rp0"
+                            android:textColor="@color/white"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Beban Rp. (Per Bulan)"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/tvBiayaBebanRp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:text="Rp2.000"
+                            android:textColor="@color/white"
+                            android:textSize="14sp" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Dana PMA Rp. (Per Bulan)"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/tvBiayaPmaRp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
@@ -270,7 +347,7 @@
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginVertical="12dp"
+                        android:layout_marginVertical="10dp"
                         android:background="@color/glass_border" />
 
                     <TextView
@@ -285,7 +362,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="Rp0"
+                        android:text="Rp2.500"
                         android:textColor="@color/accent_gold"
                         android:textSize="32sp"
                         android:textStyle="bold" />
@@ -319,7 +396,7 @@
                         android:drawableStart="@drawable/ic_pdf"
                         android:drawablePadding="8dp"
                         android:paddingHorizontal="12dp"
-                        android:text="Cetak PDF"
+                        android:text="Cetak PDF Struk"
                         android:textColor="@color/white"
                         android:textSize="14sp"
                         android:textStyle="bold" />

@@ -51,10 +51,11 @@ public class HomeActivity extends AppCompatActivity {
 
     private void updateHeaderAndStats() {
         String namaDesa = PreferencesManager.getNamaDesa(this);
-        int tarif = PreferencesManager.getTarifPerKubik(this);
+        int tarifRt = PreferencesManager.getTarifRumahTangga(this);
+        int tarifPengusaha = PreferencesManager.getTarifPengusaha(this);
 
-        binding.tvNamaDesaHeader.setText(namaDesa + " • Pengelola Air Minum");
-        binding.tvStatTarif.setText(FormatUtils.formatRupiah(tarif) + " / m³");
+        binding.tvNamaDesaHeader.setText(namaDesa + " • \"UTUH BERSATU\"");
+        binding.tvStatTarif.setText("RT: " + FormatUtils.formatRupiah(tarifRt) + " | PS: " + FormatUtils.formatRupiah(tarifPengusaha));
     }
 
     private void observeCustomerStats() {
@@ -87,35 +88,48 @@ public class HomeActivity extends AppCompatActivity {
         dialog.setContentView(dialogView);
 
         EditText etNamaDesa = dialogView.findViewById(R.id.etNamaDesa);
-        EditText etTarif = dialogView.findViewById(R.id.etTarifPerKubik);
+        EditText etTarifRt = dialogView.findViewById(R.id.etTarifRt);
+        EditText etTarifPengusaha = dialogView.findViewById(R.id.etTarifPengusaha);
+        EditText etBiayaBeban = dialogView.findViewById(R.id.etBiayaBeban);
+        EditText etBiayaPma = dialogView.findViewById(R.id.etBiayaPma);
         Button btnSimpan = dialogView.findViewById(R.id.btnSimpanPengaturan);
 
         etNamaDesa.setText(PreferencesManager.getNamaDesa(this));
-        etTarif.setText(String.valueOf(PreferencesManager.getTarifPerKubik(this)));
+        etTarifRt.setText(String.valueOf(PreferencesManager.getTarifRumahTangga(this)));
+        etTarifPengusaha.setText(String.valueOf(PreferencesManager.getTarifPengusaha(this)));
+        etBiayaBeban.setText(String.valueOf(PreferencesManager.getBiayaBeban(this)));
+        etBiayaPma.setText(String.valueOf(PreferencesManager.getBiayaPma(this)));
 
         btnSimpan.setOnClickListener(v -> {
             String namaDesa = etNamaDesa.getText().toString().trim();
-            String tarifStr = etTarif.getText().toString().trim();
+            String tarifRtStr = etTarifRt.getText().toString().trim();
+            String tarifPengusahaStr = etTarifPengusaha.getText().toString().trim();
+            String bebanStr = etBiayaBeban.getText().toString().trim();
+            String pmaStr = etBiayaPma.getText().toString().trim();
 
-            if (namaDesa.isEmpty() || tarifStr.isEmpty()) {
+            if (namaDesa.isEmpty() || tarifRtStr.isEmpty() || tarifPengusahaStr.isEmpty() || bebanStr.isEmpty() || pmaStr.isEmpty()) {
                 Toast.makeText(this, "Semua kolom pengaturan wajib diisi!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            int tarif;
             try {
-                tarif = Integer.parseInt(tarifStr);
+                int tarifRt = Integer.parseInt(tarifRtStr);
+                int tarifPengusaha = Integer.parseInt(tarifPengusahaStr);
+                int beban = Integer.parseInt(bebanStr);
+                int pma = Integer.parseInt(pmaStr);
+
+                PreferencesManager.setNamaDesa(this, namaDesa);
+                PreferencesManager.setTarifRumahTangga(this, tarifRt);
+                PreferencesManager.setTarifPengusaha(this, tarifPengusaha);
+                PreferencesManager.setBiayaBeban(this, beban);
+                PreferencesManager.setBiayaPma(this, pma);
+
+                updateHeaderAndStats();
+                dialog.dismiss();
+                Toast.makeText(this, "Pengaturan Wanasaba Daya berhasil disimpan!", Toast.LENGTH_SHORT).show();
             } catch (NumberFormatException e) {
-                Toast.makeText(this, "Tarif per m³ harus berupa angka!", Toast.LENGTH_SHORT).show();
-                return;
+                Toast.makeText(this, "Nilai tarif dan biaya harus berupa angka!", Toast.LENGTH_SHORT).show();
             }
-
-            PreferencesManager.setNamaDesa(this, namaDesa);
-            PreferencesManager.setTarifPerKubik(this, tarif);
-
-            updateHeaderAndStats();
-            dialog.dismiss();
-            Toast.makeText(this, "Pengaturan berhasil disimpan!", Toast.LENGTH_SHORT).show();
         });
 
         dialog.show();

@@ -27,7 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="6dp"
-        android:text="@string/label_nama_desa"
+        android:text="Nama Desa / Sub-Header"
         android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
@@ -35,26 +35,92 @@
         android:id="@+id/etNamaDesa"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="14dp"
         android:background="@drawable/bg_glass_input"
-        android:hint="Contoh: Desa Sukamaju"
+        android:hint="Wanasaba Daya Kec. Wanasaba - Lotim - NTB"
         android:inputType="textCapWords"
         android:paddingHorizontal="16dp"
         android:textColor="@color/white"
         android:textColorHint="@color/text_hint"
         android:textSize="14sp" />
 
-    <!-- Tarif Air per m3 Input -->
+    <!-- Tarif Rumah Tangga -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="6dp"
-        android:text="@string/label_tarif_per_kubik"
+        android:text="Tarif Rumah Tangga (Rp/m³)"
         android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
     <EditText
-        android:id="@+id/etTarifPerKubik"
+        android:id="@+id/etTarifRt"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="14dp"
+        android:background="@drawable/bg_glass_input"
+        android:hint="Default: 500"
+        android:inputType="number"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/white"
+        android:textColorHint="@color/text_hint"
+        android:textSize="14sp" />
+
+    <!-- Tarif Pengusaha -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:text="Tarif Pengusaha (Rp/m³)"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <EditText
+        android:id="@+id/etTarifPengusaha"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="14dp"
+        android:background="@drawable/bg_glass_input"
+        android:hint="Default: 1000"
+        android:inputType="number"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/white"
+        android:textColorHint="@color/text_hint"
+        android:textSize="14sp" />
+
+    <!-- Biaya Beban -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:text="Biaya Beban Per Bulan (Rp)"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <EditText
+        android:id="@+id/etBiayaBeban"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="14dp"
+        android:background="@drawable/bg_glass_input"
+        android:hint="Default: 2000"
+        android:inputType="number"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/white"
+        android:textColorHint="@color/text_hint"
+        android:textSize="14sp" />
+
+    <!-- Biaya PMA -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:text="Dana PMA Per Bulan (Rp)"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <EditText
+        android:id="@+id/etBiayaPma"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginBottom="24dp"

@@ -26,7 +26,7 @@ public interface PelangganDao {
     @Query("SELECT * FROM pelanggan ORDER BY nama ASC")
     LiveData<List<Pelanggan>> getAllPelanggan();
 
-    @Query("SELECT * FROM pelanggan WHERE nama LIKE '%' || :query || '%' OR alamat LIKE '%' || :query || '%' OR dusun LIKE '%' || :query || '%' ORDER BY nama ASC")
+    @Query("SELECT * FROM pelanggan WHERE nama LIKE '%' || :query || '%' OR dusun LIKE '%' || :query || '%' ORDER BY nama ASC")
     LiveData<List<Pelanggan>> searchPelanggan(String query);
 
     @Query("SELECT * FROM pelanggan WHERE id = :id LIMIT 1")

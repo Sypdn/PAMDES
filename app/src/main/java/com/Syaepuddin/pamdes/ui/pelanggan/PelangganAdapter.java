@@ -36,8 +36,8 @@ public class PelangganAdapter extends ListAdapter<Pelanggan, PelangganAdapter.Pe
         @Override
         public boolean areContentsTheSame(@NonNull Pelanggan oldItem, @NonNull Pelanggan newItem) {
             return oldItem.getNama().equals(newItem.getNama()) &&
-                    oldItem.getAlamat().equals(newItem.getAlamat()) &&
                     oldItem.getDusun().equals(newItem.getDusun()) &&
+                    oldItem.getKategori().equals(newItem.getKategori()) &&
                     oldItem.getMeteranAwal() == newItem.getMeteranAwal() &&
                     oldItem.getMeteranTerakhir() == newItem.getMeteranTerakhir();
         }
@@ -67,8 +67,8 @@ public class PelangganAdapter extends ListAdapter<Pelanggan, PelangganAdapter.Pe
 
         public void bind(Pelanggan pelanggan) {
             binding.tvNama.setText(pelanggan.getNama());
-            binding.tvDusun.setText(pelanggan.getDusun());
-            binding.tvAlamat.setText(pelanggan.getAlamat());
+            binding.tvKategori.setText(pelanggan.getKategori() + ("Pengusaha".equalsIgnoreCase(pelanggan.getKategori()) ? " (Rp 1.000/m³)" : " (Rp 500/m³)"));
+            binding.tvDusun.setText("Wilayah: " + pelanggan.getDusun());
             binding.tvMeteranAwal.setText(FormatUtils.formatMeter(pelanggan.getMeteranAwal()) + " m³");
             binding.tvMeteranTerakhir.setText(FormatUtils.formatMeter(pelanggan.getMeteranTerakhir()) + " m³");
 

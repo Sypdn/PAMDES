@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +26,7 @@ public class PelangganActivity extends AppCompatActivity implements PelangganAda
     private PelangganAdapter adapter;
 
     private Pelanggan editingPelanggan = null;
+    private static final String[] DAFTAR_KATEGORI = {"Rumah Tangga", "Pengusaha"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,12 +38,22 @@ public class PelangganActivity extends AppCompatActivity implements PelangganAda
 
         viewModel = new ViewModelProvider(this).get(PelangganViewModel.class);
 
+        setupKategoriSpinner();
         setupRecyclerView();
         setupInputForm();
         setupSearchBar();
         observeViewModel("");
 
         binding.btnBack.setOnClickListener(v -> finish());
+    }
+
+    private void setupKategoriSpinner() {
+        ArrayAdapter<String> kategoriAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                DAFTAR_KATEGORI
+        );
+        binding.spinnerKategori.setAdapter(kategoriAdapter);
     }
 
     private void setupRecyclerView() {
@@ -52,7 +64,6 @@ public class PelangganActivity extends AppCompatActivity implements PelangganAda
 
     private void setupInputForm() {
         binding.btnSimpan.setOnClickListener(v -> simpanPelanggan());
-
         binding.btnBatalEdit.setOnClickListener(v -> resetForm());
     }
 
@@ -81,12 +92,12 @@ public class PelangganActivity extends AppCompatActivity implements PelangganAda
 
     private void simpanPelanggan() {
         String nama = binding.etNama.getText().toString().trim();
-        String alamat = binding.etAlamat.getText().toString().trim();
         String dusun = binding.etDusun.getText().toString().trim();
+        String kategori = (String) binding.spinnerKategori.getSelectedItem();
         String meteranStr = binding.etMeteranAwal.getText().toString().trim();
 
-        if (nama.isEmpty() || alamat.isEmpty() || dusun.isEmpty() || meteranStr.isEmpty()) {
-            Toast.makeText(this, "Semua kolom wajib diisi!", Toast.LENGTH_SHORT).show();
+        if (nama.isEmpty() || dusun.isEmpty() || meteranStr.isEmpty()) {
+            Toast.makeText(this, "Nama, Dusun, dan Meteran Awal wajib diisi!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -100,7 +111,7 @@ public class PelangganActivity extends AppCompatActivity implements PelangganAda
 
         if (editingPelanggan == null) {
             // Tambah Pelanggan Baru
-            viewModel.insertPelanggan(nama, alamat, dusun, meteranAwal, resultId -> {
+            viewModel.insertPelanggan(nama, dusun, kategori, meteranAwal, resultId -> {
                 runOnUiThread(() -> {
                     Toast.makeText(PelangganActivity.this, "Pelanggan berhasil ditambahkan!", Toast.LENGTH_SHORT).show();
                     resetForm();
@@ -109,8 +120,8 @@ public class PelangganActivity extends AppCompatActivity implements PelangganAda
         } else {
             // Update Pelanggan Eksisting
             editingPelanggan.setNama(nama);
-            editingPelanggan.setAlamat(alamat);
             editingPelanggan.setDusun(dusun);
+            editingPelanggan.setKategori(kategori);
             editingPelanggan.setMeteranAwal(meteranAwal);
 
             viewModel.updatePelanggan(editingPelanggan);
@@ -124,9 +135,14 @@ public class PelangganActivity extends AppCompatActivity implements PelangganAda
         editingPelanggan = pelanggan;
         binding.tvFormTitle.setText("Form Edit Data Pelanggan");
         binding.etNama.setText(pelanggan.getNama());
-        binding.etAlamat.setText(pelanggan.getAlamat());
         binding.etDusun.setText(pelanggan.getDusun());
         binding.etMeteranAwal.setText(String.valueOf(pelanggan.getMeteranAwal()));
+
+        if ("Pengusaha".equalsIgnoreCase(pelanggan.getKategori())) {
+            binding.spinnerKategori.setSelection(1);
+        } else {
+            binding.spinnerKategori.setSelection(0);
+        }
 
         binding.btnSimpan.setText("Perbarui Data");
         binding.btnBatalEdit.setVisibility(View.VISIBLE);
@@ -166,9 +182,9 @@ public class PelangganActivity extends AppCompatActivity implements PelangganAda
         editingPelanggan = null;
         binding.tvFormTitle.setText("Form Tambah Pelanggan Baru");
         binding.etNama.setText("");
-        binding.etAlamat.setText("");
         binding.etDusun.setText("");
         binding.etMeteranAwal.setText("");
+        binding.spinnerKategori.setSelection(0);
 
         binding.btnSimpan.setText(R.string.btn_simpan);
         binding.btnBatalEdit.setVisibility(View.GONE);

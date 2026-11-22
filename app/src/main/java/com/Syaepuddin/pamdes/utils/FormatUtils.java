@@ -1,7 +1,6 @@
 package com.Syaepuddin.pamdes.utils;
 
 import java.text.NumberFormat;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -19,6 +18,11 @@ public class FormatUtils {
     public static String formatRupiah(long amount) {
         NumberFormat formatRupiah = NumberFormat.getCurrencyInstance(new Locale("in", "ID"));
         return formatRupiah.format(amount).replace(",00", "");
+    }
+
+    public static String formatNominalSimpel(long amount) {
+        NumberFormat nf = NumberFormat.getInstance(new Locale("in", "ID"));
+        return nf.format(amount) + ",-";
     }
 
     public static String formatMeter(long meter) {

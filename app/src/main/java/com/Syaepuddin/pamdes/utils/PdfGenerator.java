@@ -37,6 +37,7 @@ import java.util.List;
 
 /**
  * Utility untuk membuat, mencetak (PrintManager), dan membagikan dokumen PDF Struk & Rekap.
+ * Disesuaikan 100% dengan format Nota Fisik Rekening Air "UTUH BERSATU" Wanasaba Daya.
  */
 public class PdfGenerator {
 
@@ -53,101 +54,32 @@ public class PdfGenerator {
     }
 
     /**
-     * Membuat file PDF Struk Tagihan Individual.
+     * Membuat file PDF Struk Tagihan Individual (1 Struk per Halaman A5 Landscape).
      */
     public static PdfResult generateStrukPdf(Context context, Pelanggan pelanggan, Tagihan tagihan) {
         if (pelanggan == null || tagihan == null) return null;
 
         String namaDesa = PreferencesManager.getNamaDesa(context);
+        String judulHeader = PreferencesManager.getJudulHeader(context);
+        String alamatHeader = PreferencesManager.getAlamatHeader(context);
+
         PdfDocument document = new PdfDocument();
 
+        // Standard Struk Rekening Air Landscape format (595 x 420 pt)
         int pageWidth = 595;
-        int pageHeight = 842;
+        int pageHeight = 420;
 
         PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create();
         PdfDocument.Page page = document.startPage(pageInfo);
         Canvas canvas = page.getCanvas();
 
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-
-        // Header
-        paint.setColor(Color.parseColor("#0F2027"));
-        paint.setTextSize(22);
-        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        canvas.drawText("PENGELOLA AIR MINUM DESA (PAMDES)", 40, 50, paint);
-
-        paint.setTextSize(16);
-        paint.setColor(Color.parseColor("#0083B0"));
-        canvas.drawText(namaDesa.toUpperCase(), 40, 75, paint);
-
-        // Garis Pembatas Header
-        paint.setColor(Color.parseColor("#CCCCCC"));
-        paint.setStrokeWidth(2);
-        canvas.drawLine(40, 95, pageWidth - 40, 95, paint);
-
-        // Judul Struk
-        paint.setColor(Color.BLACK);
-        paint.setTextSize(18);
-        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        canvas.drawText("STRUK TAGIHAN AIR BULANAN", 40, 130, paint);
-
-        // Detail Pelanggan & Periode
-        paint.setTextSize(14);
-        paint.setTypeface(Typeface.DEFAULT);
-        int y = 170;
-        int lineGap = 26;
-
-        drawLabelValue(canvas, paint, "Nama Pelanggan", pelanggan.getNama(), 40, y); y += lineGap;
-        drawLabelValue(canvas, paint, "Alamat", pelanggan.getAlamat(), 40, y); y += lineGap;
-        drawLabelValue(canvas, paint, "Dusun", pelanggan.getDusun(), 40, y); y += lineGap;
-        drawLabelValue(canvas, paint, "Periode Tagihan", FormatUtils.getNamaBulan(tagihan.getBulan()) + " " + tagihan.getTahun(), 40, y); y += lineGap + 10;
-
-        // Garis Pembatas Rincian
-        paint.setColor(Color.parseColor("#E0E0E0"));
-        canvas.drawLine(40, y, pageWidth - 40, y, paint);
-        y += 30;
-
-        // Tabel Rincian Meteran & Tagihan
-        paint.setColor(Color.parseColor("#11998E"));
-        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        paint.setTextSize(14);
-        canvas.drawText("RINCIAN PEMAKAIAN", 40, y, paint);
-        y += lineGap;
-
-        paint.setColor(Color.BLACK);
-        paint.setTypeface(Typeface.DEFAULT);
-
-        drawLabelValue(canvas, paint, "Meteran Bulan Lalu", FormatUtils.formatMeter(tagihan.getMeteranLalu()) + " m³", 40, y); y += lineGap;
-        drawLabelValue(canvas, paint, "Meteran Bulan Ini", FormatUtils.formatMeter(tagihan.getMeteranIni()) + " m³", 40, y); y += lineGap;
-        drawLabelValue(canvas, paint, "Pemakaian Air", tagihan.getPemakaian() + " m³", 40, y); y += lineGap;
-        drawLabelValue(canvas, paint, "Tarif per m³", FormatUtils.formatRupiah(tagihan.getTarifPerKubik()), 40, y); y += lineGap + 10;
-
-        // Garis Total
-        paint.setColor(Color.parseColor("#0083B0"));
-        paint.setStrokeWidth(3);
-        canvas.drawLine(40, y, pageWidth - 40, y, paint);
-        y += 35;
-
-        // Total Pembayaran
-        paint.setColor(Color.parseColor("#0F2027"));
-        paint.setTextSize(18);
-        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        canvas.drawText("TOTAL TAGIHAN:", 40, y, paint);
-        canvas.drawText(FormatUtils.formatRupiah(tagihan.getTotalBayar()), pageWidth - 220, y, paint);
-        y += 50;
-
-        // Footer Struk
-        paint.setColor(Color.GRAY);
-        paint.setTextSize(11);
-        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.ITALIC));
-        canvas.drawText("Dicetak pada: " + FormatUtils.formatTanggal(System.currentTimeMillis()), 40, y, paint); y += 20;
-        canvas.drawText("Terima kasih atas pembayaran Anda. Simpan struk ini sebagai bukti pembayaran sah.", 40, y, paint);
+        // Draw Single Large Struk Ticket
+        drawSingleStrukTicketLarge(canvas, pelanggan, tagihan, namaDesa, judulHeader, alamatHeader, pageWidth, pageHeight);
 
         document.finishPage(page);
 
         String safeNama = pelanggan.getNama() != null ? pelanggan.getNama().replaceAll("[^a-zA-Z0-9_-]", "_") : "Pelanggan";
-        String fileName = "Struk_" + safeNama + "_" + tagihan.getBulan() + "_" + tagihan.getTahun() + ".pdf";
+        String fileName = "RekeningAir_" + safeNama + "_" + tagihan.getBulan() + "_" + tagihan.getTahun() + ".pdf";
 
         PdfResult result = savePdfToMediaStoreAndCache(context, document, fileName);
         document.close();
@@ -155,143 +87,349 @@ public class PdfGenerator {
     }
 
     /**
-     * Membuat file PDF Rekap Bulanan dengan dukungan multi-halaman (paginasi).
+     * Membuat file PDF Rekap Bulanan Massal dalam Format A4 (6 Struk Siap Cetak per Lembar A4).
+     * Susunan: 2 Kolom x 3 Baris = 6 Struk Nota per Lembar A4.
      */
     public static PdfResult generateRekapPdf(Context context, int bulan, int tahun, String filterDusun, List<TagihanDetail> listDetail) {
-        if (listDetail == null) return null;
+        if (listDetail == null || listDetail.isEmpty()) return null;
 
         String namaDesa = PreferencesManager.getNamaDesa(context);
+        String judulHeader = PreferencesManager.getJudulHeader(context);
+        String alamatHeader = PreferencesManager.getAlamatHeader(context);
+
         PdfDocument document = new PdfDocument();
 
+        // Standard A4 Portrait (595 x 842 pt)
         int pageWidth = 595;
         int pageHeight = 842;
-        int itemsPerPage = 18;
+
+        int ticketsPerPage = 6; // 2 kolom x 3 baris
         int totalItems = listDetail.size();
-        int totalPages = (int) Math.ceil((double) totalItems / itemsPerPage);
-        if (totalPages == 0) totalPages = 1;
+        int totalPages = (int) Math.ceil((double) totalItems / ticketsPerPage);
 
-        long totalPemakaian = 0;
-        long totalTagihan = 0;
-        for (TagihanDetail detail : listDetail) {
-            if (detail != null && detail.tagihan != null) {
-                totalPemakaian += detail.tagihan.getPemakaian();
-                totalTagihan += detail.tagihan.getTotalBayar();
-            }
-        }
+        // Dimensions for 6 tickets on A4 (2 columns x 3 rows)
+        float marginLeft = 16f;
+        float marginTop = 16f;
+        float colGap = 15f;
+        float rowGap = 16f;
 
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
+        float ticketWidth = (pageWidth - (marginLeft * 2) - colGap) / 2f;  // ~264 pt
+        float ticketHeight = (pageHeight - (marginTop * 2) - (rowGap * 2)) / 3f; // ~259 pt
 
         for (int p = 0; p < totalPages; p++) {
             PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, p + 1).create();
             PdfDocument.Page page = document.startPage(pageInfo);
             Canvas canvas = page.getCanvas();
 
-            int y = 45;
-
-            // Header Halaman
-            paint.setColor(Color.parseColor("#0F2027"));
-            paint.setTextSize(18);
-            paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-            canvas.drawText("LAPORAN REKAPITULASI TAGIHAN AIR (PAMDES)", 40, y, paint); y += 25;
-
-            paint.setTextSize(14);
-            paint.setColor(Color.parseColor("#0083B0"));
-            canvas.drawText(namaDesa.toUpperCase() + (filterDusun != null && !filterDusun.isEmpty() ? " - DUSUN " + filterDusun.toUpperCase() : ""), 40, y, paint); y += 20;
-
-            paint.setTextSize(12);
-            paint.setColor(Color.BLACK);
-            paint.setTypeface(Typeface.DEFAULT);
-            canvas.drawText("Periode: " + FormatUtils.getNamaBulan(bulan) + " " + tahun, 40, y, paint); y += 20;
-
-            // Header Tabel
-            int tableTop = y;
-            paint.setColor(Color.parseColor("#11998E"));
-            paint.setStyle(Paint.Style.FILL);
-            canvas.drawRect(40, tableTop, pageWidth - 40, tableTop + 25, paint);
-
-            paint.setColor(Color.WHITE);
-            paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-            paint.setTextSize(11);
-
-            canvas.drawText("NO", 45, tableTop + 17, paint);
-            canvas.drawText("NAMA PELANGGAN", 80, tableTop + 17, paint);
-            canvas.drawText("DUSUN", 260, tableTop + 17, paint);
-            canvas.drawText("PEMAKAIAN", 370, tableTop + 17, paint);
-            canvas.drawText("TOTAL (RP)", 470, tableTop + 17, paint);
-
-            y = tableTop + 30;
-            paint.setColor(Color.BLACK);
-            paint.setTypeface(Typeface.DEFAULT);
-
-            int startIndex = p * itemsPerPage;
-            int endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            int startIndex = p * ticketsPerPage;
+            int endIndex = Math.min(startIndex + ticketsPerPage, totalItems);
 
             for (int i = startIndex; i < endIndex; i++) {
+                int itemIndexInPage = i - startIndex;
+                int col = itemIndexInPage % 2; // 0 or 1
+                int row = itemIndexInPage / 2; // 0, 1, or 2
+
+                float x = marginLeft + (col * (ticketWidth + colGap));
+                float y = marginTop + (row * (ticketHeight + rowGap));
+
                 TagihanDetail item = listDetail.get(i);
+                Pelanggan pelanggan = item != null ? item.pelanggan : null;
+                Tagihan tagihan = item != null ? item.tagihan : null;
 
-                if (i % 2 == 1) {
-                    Paint bgPaint = new Paint();
-                    bgPaint.setColor(Color.parseColor("#F5F7FA"));
-                    canvas.drawRect(40, y - 12, pageWidth - 40, y + 10, bgPaint);
+                if (tagihan != null) {
+                    drawSingleStrukTicketCompact(canvas, pelanggan, tagihan, namaDesa, judulHeader, alamatHeader, x, y, ticketWidth, ticketHeight);
                 }
-
-                canvas.drawText(String.valueOf(i + 1), 45, y, paint);
-                canvas.drawText(truncateText(item.pelanggan != null ? item.pelanggan.getNama() : "-", 24), 80, y, paint);
-                canvas.drawText(truncateText(item.pelanggan != null ? item.pelanggan.getDusun() : "-", 15), 260, y, paint);
-                canvas.drawText((item.tagihan != null ? item.tagihan.getPemakaian() : 0) + " m³", 370, y, paint);
-                canvas.drawText(FormatUtils.formatRupiah(item.tagihan != null ? item.tagihan.getTotalBayar() : 0), 470, y, paint);
-
-                y += 22;
             }
-
-            // Halaman Terakhir -> Tampilkan Ringkasan & Tanda Tangan
-            if (p == totalPages - 1) {
-                y += 15;
-                paint.setColor(Color.parseColor("#0F2027"));
-                paint.setStrokeWidth(2);
-                canvas.drawLine(40, y, pageWidth - 40, y, paint);
-                y += 25;
-
-                paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-                paint.setTextSize(12);
-                canvas.drawText("RINGKASAN TOTAL:", 40, y, paint); y += 20;
-
-                paint.setTypeface(Typeface.DEFAULT);
-                canvas.drawText("Total Pelanggan: " + totalItems + " orang", 40, y, paint); y += 18;
-                canvas.drawText("Total Pemakaian Air: " + totalPemakaian + " m³", 40, y, paint); y += 18;
-                canvas.drawText("Total Tagihan Air: " + FormatUtils.formatRupiah(totalTagihan), 40, y, paint); y += 30;
-
-                canvas.drawText("Dicetak: " + FormatUtils.formatTanggal(System.currentTimeMillis()), pageWidth - 220, y, paint); y += 40;
-                canvas.drawText("Pengelola PAMDES", pageWidth - 220, y, paint);
-            }
-
-            // Footer Nomor Halaman
-            paint.setColor(Color.GRAY);
-            paint.setTextSize(10);
-            paint.setTypeface(Typeface.DEFAULT);
-            canvas.drawText("Halaman " + (p + 1) + " dari " + totalPages, pageWidth - 100, pageHeight - 30, paint);
 
             document.finishPage(page);
         }
 
-        String fileName = "Rekap_PAMDES_" + bulan + "_" + tahun + ".pdf";
+        String fileName = "StrukMassal_PAMDES_" + bulan + "_" + tahun + ".pdf";
         PdfResult result = savePdfToMediaStoreAndCache(context, document, fileName);
         document.close();
         return result;
     }
 
-    private static void drawLabelValue(Canvas canvas, Paint paint, String label, String value, int x, int y) {
-        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        canvas.drawText(label + ":", x, y, paint);
-        paint.setTypeface(Typeface.DEFAULT);
-        canvas.drawText(value != null ? value : "-", x + 180, y, paint);
+    /**
+     * Menggambar 1 Nota Struk Rekening Air Kompak (untuk Grid A4 Massal 6 Struk per Lembar).
+     */
+    private static void drawSingleStrukTicketCompact(Canvas canvas, Pelanggan pelanggan, Tagihan tagihan, String namaDesa, String judulHeader, String alamatHeader, float left, float top, float width, float height) {
+        float right = left + width;
+        float bottom = top + height;
+
+        // Outer double box border for cutting out ticket
+        Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setColor(Color.BLACK);
+        borderPaint.setStrokeWidth(1.5f);
+        canvas.drawRect(left, top, right, bottom, borderPaint);
+
+        borderPaint.setStrokeWidth(0.6f);
+        canvas.drawRect(left + 2f, top + 2f, right - 2f, bottom - 2f, borderPaint);
+
+        // Header Box Line
+        float headerBottom = top + 52f;
+        canvas.drawLine(left + 2f, headerBottom, right - 2f, headerBottom, borderPaint);
+
+        // Header Content
+        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setColor(Color.BLACK);
+
+        // Left Emblem text
+        textPaint.setTextSize(6.5f);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        canvas.drawText("LOMBOK TIMUR", left + 6f, top + 14f, textPaint);
+
+        // Center Header
+        float cx = left + (width / 2f);
+        textPaint.setTextSize(8.5f);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        drawCenteredText(canvas, textPaint, "PENGELOLA AIR MINUM DESA (PAMDES)", cx, top + 15f);
+
+        textPaint.setTextSize(10f);
+        drawCenteredText(canvas, textPaint, judulHeader, cx, top + 27f);
+
+        textPaint.setTextSize(7f);
+        textPaint.setTypeface(Typeface.DEFAULT);
+        drawCenteredText(canvas, textPaint, namaDesa, cx, top + 38f);
+        drawCenteredText(canvas, textPaint, alamatHeader, cx, top + 48f);
+
+        // Title: "REKENING AIR"
+        textPaint.setTextSize(9.5f);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        textPaint.setUnderlineText(true);
+        drawCenteredText(canvas, textPaint, "REKENING AIR", cx, top + 66f);
+        textPaint.setUnderlineText(false);
+
+        // Info rows (Y: top + 78 to top + 120)
+        textPaint.setTextSize(7.5f);
+        textPaint.setTypeface(Typeface.DEFAULT);
+
+        float infoY = top + 78f;
+        float gapY = 11f;
+        float col1X = left + 8f;
+        float col2X = left + 75f;
+
+        String namaStr = pelanggan != null ? pelanggan.getNama() : "-";
+        String dusunStr = pelanggan != null ? pelanggan.getDusun() : "-";
+        String kategoriStr = tagihan != null ? tagihan.getKategoriPelanggan() : "-";
+
+        String bulanTahun = tagihan != null ? FormatUtils.getNamaBulan(tagihan.getBulan()) + " " + tagihan.getTahun() : "-";
+        drawInfoRow(canvas, textPaint, "Rekening Bulan", bulanTahun, col1X, col2X, infoY); infoY += gapY;
+        drawInfoRow(canvas, textPaint, "Wilayah", dusunStr, col1X, col2X, infoY); infoY += gapY;
+        drawInfoRow(canvas, textPaint, "Jenis Tarif", kategoriStr, col1X, col2X, infoY); infoY += gapY;
+        drawInfoRow(canvas, textPaint, "Nama", namaStr, col1X, col2X, infoY);
+
+        // Table Grid (Y: top + 128 to top + 215)
+        float tableLeft = left + 6f;
+        float tableRight = right - 6f;
+        float tableTop = top + 128f;
+        float tableHeaderBottom = top + 162f;
+        float tableBottom = top + 215f;
+
+        canvas.drawRect(tableLeft, tableTop, tableRight, tableBottom, borderPaint);
+        canvas.drawLine(tableLeft, tableHeaderBottom, tableRight, tableHeaderBottom, borderPaint);
+
+        // 8 Columns across table
+        float tW = tableRight - tableLeft;
+        float[] colX = {
+                tableLeft,
+                tableLeft + tW * 0.11f,
+                tableLeft + tW * 0.22f,
+                tableLeft + tW * 0.33f,
+                tableLeft + tW * 0.47f,
+                tableLeft + tW * 0.60f,
+                tableLeft + tW * 0.73f,
+                tableLeft + tW * 0.86f,
+                tableRight
+        };
+
+        for (int i = 1; i < colX.length - 1; i++) {
+            canvas.drawLine(colX[i], tableTop, colX[i], tableBottom, borderPaint);
+        }
+
+        // Header Column Texts
+        textPaint.setTextSize(6.2f);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+
+        drawCellText2Lines(canvas, textPaint, "Meter", "Awal", colX[0], colX[1], tableTop + 11f);
+        drawCellText2Lines(canvas, textPaint, "Meter", "Akhir", colX[1], colX[2], tableTop + 11f);
+        drawCellText2Lines(canvas, textPaint, "Pakai", "(m3)", colX[2], colX[3], tableTop + 11f);
+        drawCellText2Lines(canvas, textPaint, "Jumlah", "Rp.", colX[3], colX[4], tableTop + 11f);
+        drawCellText2Lines(canvas, textPaint, "Beban", "Rp.", colX[4], colX[5], tableTop + 11f);
+        drawCellText2Lines(canvas, textPaint, "Dana", "PMA", colX[5], colX[6], tableTop + 11f);
+        drawCellText2Lines(canvas, textPaint, "Total", "Rp.", colX[6], colX[7], tableTop + 11f);
+        drawCellText2Lines(canvas, textPaint, "Harga", "Perkubikasi", colX[7], colX[8], tableTop + 11f);
+
+        // Data Row Values
+        textPaint.setTextSize(7f);
+        textPaint.setTypeface(Typeface.DEFAULT);
+
+        drawCellText(canvas, textPaint, String.valueOf(tagihan != null ? tagihan.getMeteranLalu() : 0), colX[0], colX[1], tableHeaderBottom + 28f);
+        drawCellText(canvas, textPaint, String.valueOf(tagihan != null ? tagihan.getMeteranIni() : 0), colX[1], colX[2], tableHeaderBottom + 28f);
+        drawCellText(canvas, textPaint, String.valueOf(tagihan != null ? tagihan.getPemakaian() : 0), colX[2], colX[3], tableHeaderBottom + 28f);
+        drawCellText(canvas, textPaint, FormatUtils.formatNominalSimpel(tagihan != null ? tagihan.getJumlahAir() : 0), colX[3], colX[4], tableHeaderBottom + 28f);
+        drawCellText(canvas, textPaint, FormatUtils.formatNominalSimpel(tagihan != null ? tagihan.getBiayaBeban() : 0), colX[4], colX[5], tableHeaderBottom + 28f);
+        drawCellText(canvas, textPaint, FormatUtils.formatNominalSimpel(tagihan != null ? tagihan.getBiayaPma() : 0), colX[5], colX[6], tableHeaderBottom + 28f);
+
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        drawCellText(canvas, textPaint, FormatUtils.formatNominalSimpel(tagihan != null ? tagihan.getTotalBayar() : 0), colX[6], colX[7], tableHeaderBottom + 28f);
+
+        textPaint.setTypeface(Typeface.DEFAULT);
+        drawCellText(canvas, textPaint, "Rp." + (tagihan != null ? tagihan.getTarifPerKubik() : 0), colX[7], colX[8], tableHeaderBottom + 28f);
+
+        // Footer Metadata
+        textPaint.setTextSize(6f);
+        textPaint.setColor(Color.GRAY);
+        canvas.drawText("Dicetak: " + FormatUtils.formatTanggal(System.currentTimeMillis()), left + 6f, bottom - 8f, textPaint);
+        canvas.drawText("PAMDES Wanasaba Daya", right - 75f, bottom - 8f, textPaint);
     }
 
-    private static String truncateText(String text, int maxLength) {
-        if (text == null) return "";
-        if (text.length() <= maxLength) return text;
-        return text.substring(0, maxLength - 2) + "..";
+    /**
+     * Menggambar 1 Nota Struk Rekening Air Ukuran Besar (A5 Landscape Individual).
+     */
+    private static void drawSingleStrukTicketLarge(Canvas canvas, Pelanggan pelanggan, Tagihan tagihan, String namaDesa, String judulHeader, String alamatHeader, float pageWidth, float pageHeight) {
+        Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setColor(Color.BLACK);
+        borderPaint.setStrokeWidth(2.5f);
+        canvas.drawRect(20, 20, 575, 400, borderPaint);
+
+        borderPaint.setStrokeWidth(1.0f);
+        canvas.drawRect(24, 24, 571, 396, borderPaint);
+
+        // Header Box Line
+        canvas.drawLine(24, 105, 571, 105, borderPaint);
+
+        // Header Content
+        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setColor(Color.BLACK);
+
+        // Left Emblem text: "LOMBOK TIMUR"
+        textPaint.setTextSize(9);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        canvas.drawText("LOMBOK TIMUR", 32, 42, textPaint);
+
+        // Center Header Info
+        textPaint.setTextSize(13);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        drawCenteredText(canvas, textPaint, "PENGELOLA AIR MINUM DESA (PAMDES)", 297, 44);
+
+        textPaint.setTextSize(15);
+        drawCenteredText(canvas, textPaint, judulHeader, 297, 63);
+
+        textPaint.setTextSize(10);
+        textPaint.setTypeface(Typeface.DEFAULT);
+        drawCenteredText(canvas, textPaint, namaDesa, 297, 78);
+        drawCenteredText(canvas, textPaint, alamatHeader, 297, 93);
+
+        // Judul Struk: "REKENING AIR" (Underlined, Centered, Bold)
+        textPaint.setTextSize(14);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        textPaint.setUnderlineText(true);
+        drawCenteredText(canvas, textPaint, "REKENING AIR", 297, 124);
+        textPaint.setUnderlineText(false);
+
+        // Information Fields List (Sesuai Kolom Nota Fisik)
+        textPaint.setTextSize(11);
+        textPaint.setTypeface(Typeface.DEFAULT);
+
+        int infoY = 150;
+        int gapY = 18;
+        int col1X = 40;
+        int col2X = 150;
+
+        drawInfoRow(canvas, textPaint, "Rekening Bulan", FormatUtils.getNamaBulan(tagihan.getBulan()) + " " + tagihan.getTahun(), col1X, col2X, infoY); infoY += gapY;
+        drawInfoRow(canvas, textPaint, "Wilayah", pelanggan.getDusun(), col1X, col2X, infoY); infoY += gapY;
+        drawInfoRow(canvas, textPaint, "Jenis Tarif", tagihan.getKategoriPelanggan(), col1X, col2X, infoY); infoY += gapY;
+        drawInfoRow(canvas, textPaint, "Nama", pelanggan.getNama(), col1X, col2X, infoY);
+
+        // Tabel Rincian (Box Grid Sesuai Nota Fisik)
+        int tableLeft = 32;
+        int tableRight = 563;
+        int tableTop = 240;
+        int tableHeaderBottom = 280;
+        int tableBottom = 330;
+
+        // Outer Table Box & Line Dividers
+        canvas.drawRect(tableLeft, tableTop, tableRight, tableBottom, borderPaint);
+        canvas.drawLine(tableLeft, tableHeaderBottom, tableRight, tableHeaderBottom, borderPaint);
+
+        // Column X Boundaries: 8 Columns
+        int[] colX = {32, 95, 158, 220, 295, 365, 435, 500, 563};
+
+        for (int i = 1; i < colX.length - 1; i++) {
+            canvas.drawLine(colX[i], tableTop, colX[i], tableBottom, borderPaint);
+        }
+
+        // Header Text Columns
+        textPaint.setTextSize(9.5f);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+
+        drawCellText2Lines(canvas, textPaint, "Meter", "Awal", colX[0], colX[1], tableTop + 14);
+        drawCellText2Lines(canvas, textPaint, "Meter", "Akhir", colX[1], colX[2], tableTop + 14);
+        drawCellText2Lines(canvas, textPaint, "Pakai", "(m3)", colX[2], colX[3], tableTop + 14);
+        drawCellText2Lines(canvas, textPaint, "Jumlah", "Rp.", colX[3], colX[4], tableTop + 14);
+        drawCellText2Lines(canvas, textPaint, "Beban", "Rp.", colX[4], colX[5], tableTop + 14);
+        drawCellText2Lines(canvas, textPaint, "Dana", "PMA", colX[5], colX[6], tableTop + 14);
+        drawCellText2Lines(canvas, textPaint, "Total", "Rp.", colX[6], colX[7], tableTop + 14);
+        drawCellText2Lines(canvas, textPaint, "Harga", "Perkubikasi", colX[7], colX[8], tableTop + 14);
+
+        // Data Row Values
+        textPaint.setTextSize(10.5f);
+        textPaint.setTypeface(Typeface.DEFAULT);
+
+        drawCellText(canvas, textPaint, String.valueOf(tagihan.getMeteranLalu()), colX[0], colX[1], tableHeaderBottom + 30);
+        drawCellText(canvas, textPaint, String.valueOf(tagihan.getMeteranIni()), colX[1], colX[2], tableHeaderBottom + 30);
+        drawCellText(canvas, textPaint, String.valueOf(tagihan.getPemakaian()), colX[2], colX[3], tableHeaderBottom + 30);
+        drawCellText(canvas, textPaint, FormatUtils.formatNominalSimpel(tagihan.getJumlahAir()), colX[3], colX[4], tableHeaderBottom + 30);
+        drawCellText(canvas, textPaint, FormatUtils.formatNominalSimpel(tagihan.getBiayaBeban()), colX[4], colX[5], tableHeaderBottom + 30);
+        drawCellText(canvas, textPaint, FormatUtils.formatNominalSimpel(tagihan.getBiayaPma()), colX[5], colX[6], tableHeaderBottom + 30);
+
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        drawCellText(canvas, textPaint, FormatUtils.formatNominalSimpel(tagihan.getTotalBayar()), colX[6], colX[7], tableHeaderBottom + 30);
+
+        textPaint.setTypeface(Typeface.DEFAULT);
+        drawCellText(canvas, textPaint, "Rp. " + tagihan.getTarifPerKubik() + ",-", colX[7], colX[8], tableHeaderBottom + 30);
+
+        // Footer Metadata
+        textPaint.setTextSize(9f);
+        textPaint.setColor(Color.GRAY);
+        canvas.drawText("Dicetak: " + FormatUtils.formatTanggal(System.currentTimeMillis()), 32, 365, textPaint);
+        canvas.drawText("Pengelola PAMDES Wanasaba Daya", 370, 365, textPaint);
+    }
+
+    private static void drawCenteredText(Canvas canvas, Paint paint, String text, float cx, float y) {
+        if (text == null) return;
+        float width = paint.measureText(text);
+        canvas.drawText(text, cx - (width / 2f), y, paint);
+    }
+
+    private static void drawInfoRow(Canvas canvas, Paint paint, String label, String value, float x1, float x2, float y) {
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        canvas.drawText(label, x1, y, paint);
+        canvas.drawText(":", x2 - 10, y, paint);
+        paint.setTypeface(Typeface.DEFAULT);
+        canvas.drawText(value != null ? value : "-", x2, y, paint);
+    }
+
+    private static void drawCellText(Canvas canvas, Paint paint, String text, float left, float right, float y) {
+        if (text == null) return;
+        float width = paint.measureText(text);
+        float cx = (left + right) / 2f;
+        canvas.drawText(text, cx - (width / 2f), y, paint);
+    }
+
+    private static void drawCellText2Lines(Canvas canvas, Paint paint, String line1, String line2, float left, float right, float y) {
+        float cx = (left + right) / 2f;
+        if (line1 != null) {
+            float w1 = paint.measureText(line1);
+            canvas.drawText(line1, cx - (w1 / 2f), y, paint);
+        }
+        if (line2 != null) {
+            float w2 = paint.measureText(line2);
+            canvas.drawText(line2, cx - (w2 / 2f), y + 12, paint);
+        }
     }
 
     /**
@@ -303,13 +441,11 @@ public class PdfGenerator {
         File pdfFile = null;
 
         try {
-            // Write PDF to byte array first
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.writeTo(baos);
             byte[] pdfBytes = baos.toByteArray();
             baos.close();
 
-            // 1. Simpan ke Cache internal aplikasi
             File cacheDir = new File(context.getCacheDir(), "pdf_reports");
             if (!cacheDir.exists()) cacheDir.mkdirs();
             pdfFile = new File(cacheDir, fileName);
@@ -321,7 +457,6 @@ public class PdfGenerator {
 
             mediaStoreUri = FileProvider.getUriForFile(context, FILE_PROVIDER_AUTHORITY, pdfFile);
 
-            // 2. Simpan ke MediaStore (Folder Documents/PAMDES) di API 29+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
@@ -406,7 +541,7 @@ public class PdfGenerator {
                         output.write(buf, 0, bytesRead);
                     }
 
-                        callback.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
+                    callback.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -421,7 +556,7 @@ public class PdfGenerator {
         };
 
         PrintAttributes attributes = new PrintAttributes.Builder()
-                .setMediaSize(PrintAttributes.MediaSize.ISO_A5)
+                .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
                 .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
                 .build();
 

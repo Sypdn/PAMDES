@@ -39,9 +39,12 @@ public class TagihanActivity extends AppCompatActivity {
 
     private int selectedBulan;
     private int selectedTahun;
-    private int tarifPerKubik;
+    private int tarifPerKubik = 500;
+    private int biayaBeban = 2000;
+    private int biayaPma = 500;
 
     private long currentPemakaian = 0;
+    private long currentJumlahAir = 0;
     private long currentTotalBayar = 0;
 
     private PdfGenerator.PdfResult currentPdfResult = null;
@@ -62,8 +65,11 @@ public class TagihanActivity extends AppCompatActivity {
         selectedBulan = calendar.get(Calendar.MONTH) + 1;
         selectedTahun = calendar.get(Calendar.YEAR);
 
-        tarifPerKubik = PreferencesManager.getTarifPerKubik(this);
-        binding.tvTarifPerKubik.setText(FormatUtils.formatRupiah(tarifPerKubik));
+        biayaBeban = PreferencesManager.getBiayaBeban(this);
+        biayaPma = PreferencesManager.getBiayaPma(this);
+
+        binding.tvBiayaBebanRp.setText(FormatUtils.formatRupiah(biayaBeban));
+        binding.tvBiayaPmaRp.setText(FormatUtils.formatRupiah(biayaPma));
 
         updatePeriodeButtonText();
         setupAutoCompletePelanggan();
@@ -79,7 +85,6 @@ public class TagihanActivity extends AppCompatActivity {
     }
 
     private void setupAutoCompletePelanggan() {
-        // Tampilkan popup daftar pilihan mulai dari 1 karakter
         binding.actvPelanggan.setThreshold(1);
 
         viewModel.getAllPelanggan().observe(this, list -> {
@@ -87,7 +92,7 @@ public class TagihanActivity extends AppCompatActivity {
                 allPelangganList = list;
                 List<String> displayNames = new ArrayList<>();
                 for (Pelanggan p : list) {
-                    displayNames.add(p.getNama() + " (" + p.getDusun() + ")");
+                    displayNames.add(p.getNama() + " (" + p.getDusun() + " • " + p.getKategori() + ")");
                 }
 
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(
@@ -99,7 +104,6 @@ public class TagihanActivity extends AppCompatActivity {
             }
         });
 
-        // Buka dropdown popup jika field diklik atau difokuskan
         binding.actvPelanggan.setOnClickListener(v -> {
             if (binding.actvPelanggan.getText().length() > 0) {
                 binding.actvPelanggan.showDropDown();
@@ -112,7 +116,6 @@ public class TagihanActivity extends AppCompatActivity {
             }
         });
 
-        // Hapus pilihan jika pengguna mengubah teks secara manual tanpa menekan popup
         binding.actvPelanggan.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -120,10 +123,7 @@ public class TagihanActivity extends AppCompatActivity {
 
                 if (selectedPelanggan != null) {
                     String currentText = s.toString();
-                    String expectedText = selectedPelanggan.getNama();
-                    String expectedWithDusun = selectedPelanggan.getNama() + " (" + selectedPelanggan.getDusun() + ")";
-
-                    if (!currentText.equals(expectedText) && !currentText.equals(expectedWithDusun)) {
+                    if (!currentText.equals(selectedPelanggan.getNama())) {
                         clearSelectedPelanggan();
                     }
                 }
@@ -131,11 +131,10 @@ public class TagihanActivity extends AppCompatActivity {
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        // WAJIB memilih dari popup yang muncul
         binding.actvPelanggan.setOnItemClickListener((parent, view, position, id) -> {
             String selectedText = (String) parent.getItemAtPosition(position);
             for (Pelanggan p : allPelangganList) {
-                String fullFormat = p.getNama() + " (" + p.getDusun() + ")";
+                String fullFormat = p.getNama() + " (" + p.getDusun() + " • " + p.getKategori() + ")";
                 if (fullFormat.equals(selectedText) || p.getNama().equals(selectedText)) {
                     selectPelanggan(p);
                     break;
@@ -147,14 +146,23 @@ public class TagihanActivity extends AppCompatActivity {
     private void selectPelanggan(Pelanggan pelanggan) {
         isSelectingFromPopup = true;
         this.selectedPelanggan = pelanggan;
+
+        if ("Pengusaha".equalsIgnoreCase(pelanggan.getKategori())) {
+            tarifPerKubik = PreferencesManager.getTarifPengusaha(this);
+        } else {
+            tarifPerKubik = PreferencesManager.getTarifRumahTangga(this);
+        }
+
         binding.actvPelanggan.setError(null);
         binding.actvPelanggan.setText(pelanggan.getNama(), false);
         isSelectingFromPopup = false;
 
         binding.layoutInfoPelanggan.setVisibility(View.VISIBLE);
         binding.tvInfoNama.setText(pelanggan.getNama());
-        binding.tvInfoDusunAlamat.setText(pelanggan.getDusun() + " • " + pelanggan.getAlamat());
+        binding.tvInfoDusunAlamat.setText("Wilayah: " + pelanggan.getDusun());
+        binding.tvInfoKategoriNoSam.setText("Jenis Tarif: " + pelanggan.getKategori() + " (" + FormatUtils.formatRupiah(tarifPerKubik) + "/m³)");
         binding.tvInfoMeteranLalu.setText(FormatUtils.formatMeter(pelanggan.getMeteranTerakhir()) + " m³");
+        binding.tvTarifPerKubik.setText(FormatUtils.formatRupiah(tarifPerKubik) + " / m³");
 
         calculateTotalRealtime();
         binding.etMeteranIni.requestFocus();
@@ -179,16 +187,18 @@ public class TagihanActivity extends AppCompatActivity {
     private void calculateTotalRealtime() {
         if (selectedPelanggan == null) {
             currentPemakaian = 0;
+            currentJumlahAir = 0;
             currentTotalBayar = 0;
-            updateCalculationDisplay(0, 0);
+            updateCalculationDisplay(0, 0, 0);
             return;
         }
 
         String inputStr = binding.etMeteranIni.getText().toString().trim();
         if (inputStr.isEmpty()) {
             currentPemakaian = 0;
+            currentJumlahAir = 0;
             currentTotalBayar = 0;
-            updateCalculationDisplay(0, 0);
+            updateCalculationDisplay(0, 0, 0);
             return;
         }
 
@@ -199,23 +209,27 @@ public class TagihanActivity extends AppCompatActivity {
             if (meteranIni < meteranLalu) {
                 binding.etMeteranIni.setError("Meteran bulan ini tidak boleh lebih kecil dari bulan lalu!");
                 currentPemakaian = 0;
+                currentJumlahAir = 0;
                 currentTotalBayar = 0;
-                updateCalculationDisplay(0, 0);
+                updateCalculationDisplay(0, 0, 0);
             } else {
                 binding.etMeteranIni.setError(null);
                 currentPemakaian = meteranIni - meteranLalu;
-                currentTotalBayar = currentPemakaian * tarifPerKubik;
-                updateCalculationDisplay(currentPemakaian, currentTotalBayar);
+                currentJumlahAir = currentPemakaian * tarifPerKubik;
+                currentTotalBayar = currentJumlahAir + biayaBeban + biayaPma;
+                updateCalculationDisplay(currentPemakaian, currentJumlahAir, currentTotalBayar);
             }
         } catch (NumberFormatException e) {
             currentPemakaian = 0;
+            currentJumlahAir = 0;
             currentTotalBayar = 0;
-            updateCalculationDisplay(0, 0);
+            updateCalculationDisplay(0, 0, 0);
         }
     }
 
-    private void updateCalculationDisplay(long pemakaian, long totalBayar) {
+    private void updateCalculationDisplay(long pemakaian, long jumlahAir, long totalBayar) {
         binding.tvPemakaianKubik.setText(pemakaian + " m³");
+        binding.tvJumlahAirRp.setText(FormatUtils.formatRupiah(jumlahAir));
 
         if (totalAnimator != null && totalAnimator.isRunning()) {
             totalAnimator.cancel();
@@ -243,7 +257,7 @@ public class TagihanActivity extends AppCompatActivity {
 
         binding.btnBagikanPdf.setOnClickListener(v -> {
             if (currentPdfResult != null && currentPdfResult.uri != null) {
-                PdfGenerator.sharePdf(this, currentPdfResult.uri, "Bagikan Struk Tagihan PAMDES");
+                PdfGenerator.sharePdf(this, currentPdfResult.uri, "Bagikan Struk Rekening Air PAMDES");
             }
         });
     }
@@ -280,7 +294,6 @@ public class TagihanActivity extends AppCompatActivity {
             return;
         }
 
-        // Cek duplikasi tagihan pada bulan dan tahun yang sama
         viewModel.checkExistingTagihan(selectedPelanggan.getId(), selectedBulan, selectedTahun, existing -> {
             runOnUiThread(() -> {
                 if (existing != null) {
@@ -299,16 +312,21 @@ public class TagihanActivity extends AppCompatActivity {
 
     private void executeSaveTagihan(int existingId, long meteranLalu, long meteranIni) {
         long pemakaian = meteranIni - meteranLalu;
-        long totalBayar = pemakaian * tarifPerKubik;
+        long jumlahAir = pemakaian * tarifPerKubik;
+        long totalBayar = jumlahAir + biayaBeban + biayaPma;
 
         Tagihan tagihan = new Tagihan(
                 selectedPelanggan.getId(),
                 selectedBulan,
                 selectedTahun,
+                selectedPelanggan.getKategori(),
                 meteranLalu,
                 meteranIni,
                 pemakaian,
                 tarifPerKubik,
+                jumlahAir,
+                biayaBeban,
+                biayaPma,
                 totalBayar,
                 System.currentTimeMillis(),
                 true
@@ -348,16 +366,21 @@ public class TagihanActivity extends AppCompatActivity {
         long meteranIni = Long.parseLong(inputStr);
         long meteranLalu = selectedPelanggan.getMeteranTerakhir();
         long pemakaian = Math.max(0, meteranIni - meteranLalu);
-        long totalBayar = pemakaian * tarifPerKubik;
+        long jumlahAir = pemakaian * tarifPerKubik;
+        long totalBayar = jumlahAir + biayaBeban + biayaPma;
 
         Tagihan tagihanPdf = new Tagihan(
                 selectedPelanggan.getId(),
                 selectedBulan,
                 selectedTahun,
+                selectedPelanggan.getKategori(),
                 meteranLalu,
                 meteranIni,
                 pemakaian,
                 tarifPerKubik,
+                jumlahAir,
+                biayaBeban,
+                biayaPma,
                 totalBayar,
                 System.currentTimeMillis(),
                 true
@@ -366,10 +389,9 @@ public class TagihanActivity extends AppCompatActivity {
         currentPdfResult = PdfGenerator.generateStrukPdf(this, selectedPelanggan, tagihanPdf);
         if (currentPdfResult != null && currentPdfResult.file != null) {
             binding.layoutPdfActions.setVisibility(View.VISIBLE);
-            Toast.makeText(this, "Struk PDF siap dicetak / disimpan!", Toast.LENGTH_SHORT).show();
-            
-            // Panggil Layanan Cetak Android (PrintManager) secara otomatis
-            PdfGenerator.printPdf(this, currentPdfResult.file, "Struk_" + selectedPelanggan.getNama());
+            Toast.makeText(this, "Struk Rekening Air PDF siap dicetak!", Toast.LENGTH_SHORT).show();
+
+            PdfGenerator.printPdf(this, currentPdfResult.file, "RekeningAir_" + selectedPelanggan.getNama());
         }
     }
 
