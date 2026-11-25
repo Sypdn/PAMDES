@@ -90,13 +90,17 @@ public class PamdesRepository {
         });
     }
 
-    public LiveData<List<TagihanDetail>> getTagihanDetailFiltered(int bulan, int tahun, String dusun, String query) {
-        return tagihanDao.getTagihanDetailFiltered(bulan, tahun, dusun, query);
+    public void updateStatusBayar(int tagihanId, boolean statusBayar) {
+        executorService.execute(() -> tagihanDao.updateStatusBayar(tagihanId, statusBayar));
     }
 
-    public void getTagihanDetailFilteredSync(int bulan, int tahun, String dusun, String query, Callback<List<TagihanDetail>> callback) {
+    public LiveData<List<TagihanDetail>> getTagihanDetailFiltered(int bulan, int tahun, String dusun, String query, int statusFilter) {
+        return tagihanDao.getTagihanDetailFiltered(bulan, tahun, dusun, query, statusFilter);
+    }
+
+    public void getTagihanDetailFilteredSync(int bulan, int tahun, String dusun, String query, int statusFilter, Callback<List<TagihanDetail>> callback) {
         executorService.execute(() -> {
-            List<TagihanDetail> list = tagihanDao.getTagihanDetailFilteredSync(bulan, tahun, dusun, query);
+            List<TagihanDetail> list = tagihanDao.getTagihanDetailFilteredSync(bulan, tahun, dusun, query, statusFilter);
             if (callback != null) {
                 callback.onResult(list);
             }

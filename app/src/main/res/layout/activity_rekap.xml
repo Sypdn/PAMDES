@@ -69,25 +69,35 @@
                     android:id="@+id/btnPilihPeriode"
                     android:layout_width="0dp"
                     android:layout_height="42dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1.2"
                     android:background="@drawable/bg_glass_button"
                     android:drawableStart="@drawable/ic_calendar"
                     android:drawablePadding="6dp"
-                    android:paddingHorizontal="10dp"
+                    android:paddingHorizontal="8dp"
                     android:textColor="@color/water_cyan"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    tools:text="Nopember 2026" />
+                    tools:text="November 2026" />
 
                 <!-- Dusun Filter Spinner -->
                 <Spinner
                     android:id="@+id/spinnerDusun"
                     android:layout_width="0dp"
                     android:layout_height="42dp"
+                    android:layout_marginEnd="6dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_glass_input"
-                    android:paddingHorizontal="10dp" />
+                    android:paddingHorizontal="6dp" />
+
+                <!-- Status Filter Spinner -->
+                <Spinner
+                    android:id="@+id/spinnerStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_glass_input"
+                    android:paddingHorizontal="6dp" />
             </LinearLayout>
 
             <EditText
@@ -123,53 +133,63 @@
                 android:background="@drawable/bg_glass_button_primary"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="8dp"
+                android:paddingHorizontal="6dp"
                 android:weightSum="10">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="0.8"
                     android:text="No"
                     android:textColor="@color/white"
-                    android:textSize="11sp"
+                    android:textSize="10.5sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3.5"
+                    android:layout_weight="2.8"
                     android:text="Nama"
                     android:textColor="@color/white"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2.2"
-                    android:text="Dusun"
-                    android:textColor="@color/white"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.5"
-                    android:text="Vol (m³)"
-                    android:textColor="@color/white"
-                    android:textSize="11sp"
+                    android:textSize="10.5sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1.8"
+                    android:text="Dusun"
+                    android:textColor="@color/white"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.4"
+                    android:text="Vol"
+                    android:textColor="@color/white"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.7"
+                    android:gravity="center"
+                    android:text="Status"
+                    android:textColor="@color/white"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.5"
                     android:gravity="end"
                     android:text="Total"
                     android:textColor="@color/white"
-                    android:textSize="11sp"
+                    android:textSize="10.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -295,7 +315,7 @@
                 android:drawableStart="@drawable/ic_pdf"
                 android:drawablePadding="10dp"
                 android:paddingHorizontal="16dp"
-                android:text="@string/btn_ekspor_pdf"
+                android:text="Ekspor Struk Massal A4"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 android:textStyle="bold" />

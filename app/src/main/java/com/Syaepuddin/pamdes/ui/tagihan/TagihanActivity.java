@@ -1,6 +1,7 @@
 package com.Syaepuddin.pamdes.ui.tagihan;
 
 import android.animation.ValueAnimator;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -71,6 +72,7 @@ public class TagihanActivity extends AppCompatActivity {
         binding.tvBiayaBebanRp.setText(FormatUtils.formatRupiah(biayaBeban));
         binding.tvBiayaPmaRp.setText(FormatUtils.formatRupiah(biayaPma));
 
+        setupStatusSwitch();
         updatePeriodeButtonText();
         setupAutoCompletePelanggan();
         setupCalculationListeners();
@@ -78,6 +80,18 @@ public class TagihanActivity extends AppCompatActivity {
 
         binding.btnBack.setOnClickListener(v -> finish());
         binding.btnPilihPeriode.setOnClickListener(v -> showMonthYearPickerDialog());
+    }
+
+    private void setupStatusSwitch() {
+        binding.switchStatusBayar.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                binding.switchStatusBayar.setText("LUNAS");
+                binding.switchStatusBayar.setTextColor(Color.parseColor("#00E676"));
+            } else {
+                binding.switchStatusBayar.setText("BELUM LUNAS");
+                binding.switchStatusBayar.setTextColor(Color.parseColor("#FF5252"));
+            }
+        });
     }
 
     private void updatePeriodeButtonText() {
@@ -163,6 +177,15 @@ public class TagihanActivity extends AppCompatActivity {
         binding.tvInfoKategoriNoSam.setText("Jenis Tarif: " + pelanggan.getKategori() + " (" + FormatUtils.formatRupiah(tarifPerKubik) + "/m³)");
         binding.tvInfoMeteranLalu.setText(FormatUtils.formatMeter(pelanggan.getMeteranTerakhir()) + " m³");
         binding.tvTarifPerKubik.setText(FormatUtils.formatRupiah(tarifPerKubik) + " / m³");
+
+        // Cek apakah sudah ada tagihan di periode berjalan untuk set status switch
+        viewModel.checkExistingTagihan(pelanggan.getId(), selectedBulan, selectedTahun, existing -> {
+            runOnUiThread(() -> {
+                if (existing != null) {
+                    binding.switchStatusBayar.setChecked(existing.isStatusBayar());
+                }
+            });
+        });
 
         calculateTotalRealtime();
         binding.etMeteranIni.requestFocus();
@@ -294,23 +317,25 @@ public class TagihanActivity extends AppCompatActivity {
             return;
         }
 
+        boolean isLunas = binding.switchStatusBayar.isChecked();
+
         viewModel.checkExistingTagihan(selectedPelanggan.getId(), selectedBulan, selectedTahun, existing -> {
             runOnUiThread(() -> {
                 if (existing != null) {
                     new AlertDialog.Builder(TagihanActivity.this)
                             .setTitle("Tagihan Sudah Ada")
                             .setMessage("Pelanggan " + selectedPelanggan.getNama() + " sudah memiliki tagihan untuk bulan " + FormatUtils.getNamaBulan(selectedBulan) + " " + selectedTahun + ". Apakah Anda ingin memperbarui tagihan ini?")
-                            .setPositiveButton("Perbarui", (dialog, which) -> executeSaveTagihan(existing.getId(), meteranLalu, meteranIni))
+                            .setPositiveButton("Perbarui", (dialog, which) -> executeSaveTagihan(existing.getId(), meteranLalu, meteranIni, isLunas))
                             .setNegativeButton("Batal", null)
                             .show();
                 } else {
-                    executeSaveTagihan(0, meteranLalu, meteranIni);
+                    executeSaveTagihan(0, meteranLalu, meteranIni, isLunas);
                 }
             });
         });
     }
 
-    private void executeSaveTagihan(int existingId, long meteranLalu, long meteranIni) {
+    private void executeSaveTagihan(int existingId, long meteranLalu, long meteranIni, boolean isLunas) {
         long pemakaian = meteranIni - meteranLalu;
         long jumlahAir = pemakaian * tarifPerKubik;
         long totalBayar = jumlahAir + biayaBeban + biayaPma;
@@ -329,7 +354,7 @@ public class TagihanActivity extends AppCompatActivity {
                 biayaPma,
                 totalBayar,
                 System.currentTimeMillis(),
-                true
+                isLunas
         );
 
         if (existingId > 0) {
@@ -339,7 +364,8 @@ public class TagihanActivity extends AppCompatActivity {
         viewModel.simpanTagihan(tagihan, id -> {
             runOnUiThread(() -> {
                 selectedPelanggan.setMeteranTerakhir(meteranIni);
-                Toast.makeText(TagihanActivity.this, "Tagihan berhasil disimpan & meteran diperbarui!", Toast.LENGTH_SHORT).show();
+                String statusStr = isLunas ? "LUNAS" : "BELUM LUNAS";
+                Toast.makeText(TagihanActivity.this, "Tagihan berhasil disimpan (" + statusStr + ") & meteran diperbarui!", Toast.LENGTH_SHORT).show();
                 binding.tvInfoMeteranLalu.setText(FormatUtils.formatMeter(meteranIni) + " m³");
             });
         });
@@ -368,6 +394,7 @@ public class TagihanActivity extends AppCompatActivity {
         long pemakaian = Math.max(0, meteranIni - meteranLalu);
         long jumlahAir = pemakaian * tarifPerKubik;
         long totalBayar = jumlahAir + biayaBeban + biayaPma;
+        boolean isLunas = binding.switchStatusBayar.isChecked();
 
         Tagihan tagihanPdf = new Tagihan(
                 selectedPelanggan.getId(),
@@ -383,7 +410,7 @@ public class TagihanActivity extends AppCompatActivity {
                 biayaPma,
                 totalBayar,
                 System.currentTimeMillis(),
-                true
+                isLunas
         );
 
         currentPdfResult = PdfGenerator.generateStrukPdf(this, selectedPelanggan, tagihanPdf);

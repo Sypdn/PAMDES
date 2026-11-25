@@ -24,11 +24,15 @@ public class RekapViewModel extends AndroidViewModel {
         return repository.getAllDusun();
     }
 
-    public LiveData<List<TagihanDetail>> getTagihanDetailFiltered(int bulan, int tahun, String dusun, String query) {
-        return repository.getTagihanDetailFiltered(bulan, tahun, dusun, query);
+    public LiveData<List<TagihanDetail>> getTagihanDetailFiltered(int bulan, int tahun, String dusun, String query, int statusFilter) {
+        return repository.getTagihanDetailFiltered(bulan, tahun, dusun, query, statusFilter);
     }
 
-    public void getTagihanDetailFilteredSync(int bulan, int tahun, String dusun, String query, PamdesRepository.Callback<List<TagihanDetail>> callback) {
-        repository.getTagihanDetailFilteredSync(bulan, tahun, dusun, query, callback);
+    public void updateStatusBayar(int tagihanId, boolean statusBayar) {
+        repository.updateStatusBayar(tagihanId, statusBayar);
+    }
+
+    public void getTagihanDetailFilteredSync(int bulan, int tahun, String dusun, String query, int statusFilter, PamdesRepository.Callback<List<TagihanDetail>> callback) {
+        repository.getTagihanDetailFilteredSync(bulan, tahun, dusun, query, statusFilter, callback);
     }
 }

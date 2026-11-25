@@ -8,6 +8,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class RekapActivity extends AppCompatActivity {
+public class RekapActivity extends AppCompatActivity implements RekapAdapter.OnRekapClickListener {
 
     private ActivityRekapBinding binding;
     private RekapViewModel viewModel;
@@ -36,9 +37,12 @@ public class RekapActivity extends AppCompatActivity {
     private int selectedTahun;
     private String selectedDusun = "";
     private String currentSearchQuery = "";
+    private int selectedStatusFilter = -1; // -1: Semua, 0: Belum Lunas, 1: Lunas
 
     private List<TagihanDetail> currentRekapList = new ArrayList<>();
     private PdfGenerator.PdfResult currentPdfResult = null;
+
+    private static final String[] DAFTAR_STATUS_FILTER = {"Semua Status", "Belum Lunas", "Lunas"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +60,7 @@ public class RekapActivity extends AppCompatActivity {
 
         updatePeriodeButtonText();
         setupRecyclerView();
-        setupDusunSpinner();
+        setupSpinners();
         setupSearchAndFilters();
         observeRekapData();
 
@@ -72,7 +76,7 @@ public class RekapActivity extends AppCompatActivity {
 
         binding.btnBagikanPdf.setOnClickListener(v -> {
             if (currentPdfResult != null && currentPdfResult.uri != null) {
-                PdfGenerator.sharePdf(this, currentPdfResult.uri, "Bagikan Rekap Bulanan PAMDES");
+                PdfGenerator.sharePdf(this, currentPdfResult.uri, "Bagikan Rekap Struk Massal PAMDES");
             }
         });
     }
@@ -82,12 +86,13 @@ public class RekapActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        adapter = new RekapAdapter();
+        adapter = new RekapAdapter(this);
         binding.rvRekap.setLayoutManager(new LinearLayoutManager(this));
         binding.rvRekap.setAdapter(adapter);
     }
 
-    private void setupDusunSpinner() {
+    private void setupSpinners() {
+        // Spinner Dusun
         viewModel.getAllDusun().observe(this, dusunList -> {
             List<String> spinnerItems = new ArrayList<>();
             spinnerItems.add(getString(R.string.semua_dusun));
@@ -95,21 +100,42 @@ public class RekapActivity extends AppCompatActivity {
                 spinnerItems.addAll(dusunList);
             }
 
-            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+            ArrayAdapter<String> dusunAdapter = new ArrayAdapter<>(
                     RekapActivity.this,
                     android.R.layout.simple_spinner_dropdown_item,
                     spinnerItems
             );
-            binding.spinnerDusun.setAdapter(spinnerAdapter);
+            binding.spinnerDusun.setAdapter(dusunAdapter);
         });
 
         binding.spinnerDusun.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == 0) {
-                    selectedDusun = "";
+                selectedDusun = position == 0 ? "" : (String) parent.getItemAtPosition(position);
+                observeRekapData();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // Spinner Status Filter
+        ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                DAFTAR_STATUS_FILTER
+        );
+        binding.spinnerStatus.setAdapter(statusAdapter);
+
+        binding.spinnerStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 1) {
+                    selectedStatusFilter = 0; // Belum Lunas
+                } else if (position == 2) {
+                    selectedStatusFilter = 1; // Lunas
                 } else {
-                    selectedDusun = (String) parent.getItemAtPosition(position);
+                    selectedStatusFilter = -1; // Semua Status
                 }
                 observeRekapData();
             }
@@ -131,7 +157,7 @@ public class RekapActivity extends AppCompatActivity {
     }
 
     private void observeRekapData() {
-        viewModel.getTagihanDetailFiltered(selectedBulan, selectedTahun, selectedDusun, currentSearchQuery)
+        viewModel.getTagihanDetailFiltered(selectedBulan, selectedTahun, selectedDusun, currentSearchQuery, selectedStatusFilter)
                 .observe(this, list -> {
                     if (list == null || list.isEmpty()) {
                         currentRekapList.clear();
@@ -163,6 +189,40 @@ public class RekapActivity extends AppCompatActivity {
         binding.tvSummaryTotal.setText(FormatUtils.formatRupiah(totalTagihan));
     }
 
+    @Override
+    public void onItemClick(TagihanDetail detail) {
+        if (detail == null || detail.tagihan == null || detail.pelanggan == null) return;
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.GlassBottomSheetDialog);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_confirm_delete, null);
+        dialog.setContentView(dialogView);
+
+        TextView tvTitle = dialogView.findViewById(R.id.tvMessage);
+        Button btnBatal = dialogView.findViewById(R.id.btnBatal);
+        Button btnUbahStatus = dialogView.findViewById(R.id.btnHapus);
+
+        boolean currentLunas = detail.tagihan.isStatusBayar();
+        tvTitle.setText("Pelanggan: " + detail.pelanggan.getNama() + "\nTotal: " + FormatUtils.formatRupiah(detail.tagihan.getTotalBayar()) + "\nStatus Saat Ini: " + (currentLunas ? "LUNAS" : "BELUM LUNAS"));
+
+        btnBatal.setText("Cetak Struk Individual");
+        btnBatal.setOnClickListener(v -> {
+            dialog.dismiss();
+            PdfGenerator.PdfResult res = PdfGenerator.generateStrukPdf(this, detail.pelanggan, detail.tagihan);
+            if (res != null && res.file != null) {
+                PdfGenerator.printPdf(this, res.file, "RekeningAir_" + detail.pelanggan.getNama());
+            }
+        });
+
+        btnUbahStatus.setText(currentLunas ? "BELUM LUNAS" : "LUNAS");
+        btnUbahStatus.setOnClickListener(v -> {
+            viewModel.updateStatusBayar(detail.tagihan.getId(), !currentLunas);
+            dialog.dismiss();
+            Toast.makeText(this, "Status pembayaran berhasil diperbarui!", Toast.LENGTH_SHORT).show();
+        });
+
+        dialog.show();
+    }
+
     private void eksporRekapPdf() {
         if (currentRekapList == null || currentRekapList.isEmpty()) {
             Toast.makeText(this, "Tidak ada data tagihan untuk diekspor!", Toast.LENGTH_SHORT).show();
@@ -172,10 +232,10 @@ public class RekapActivity extends AppCompatActivity {
         currentPdfResult = PdfGenerator.generateRekapPdf(this, selectedBulan, selectedTahun, selectedDusun, currentRekapList);
         if (currentPdfResult != null && currentPdfResult.file != null) {
             binding.layoutPdfActions.setVisibility(View.VISIBLE);
-            Toast.makeText(this, "Laporan Rekap PDF siap dicetak / disimpan!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Laporan Struk Massal A4 siap dicetak!", Toast.LENGTH_SHORT).show();
 
             // Panggil Layanan Cetak System Android
-            PdfGenerator.printPdf(this, currentPdfResult.file, "Rekap_PAMDES_" + selectedBulan + "_" + selectedTahun);
+            PdfGenerator.printPdf(this, currentPdfResult.file, "StrukMassal_PAMDES_" + selectedBulan + "_" + selectedTahun);
         }
     }
 

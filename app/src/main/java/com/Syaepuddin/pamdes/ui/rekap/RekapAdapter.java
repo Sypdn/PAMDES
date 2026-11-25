@@ -1,5 +1,6 @@
 package com.Syaepuddin.pamdes.ui.rekap;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -14,8 +15,15 @@ import com.Syaepuddin.pamdes.utils.FormatUtils;
 
 public class RekapAdapter extends ListAdapter<TagihanDetail, RekapAdapter.RekapViewHolder> {
 
-    public RekapAdapter() {
+    public interface OnRekapClickListener {
+        void onItemClick(TagihanDetail detail);
+    }
+
+    private final OnRekapClickListener listener;
+
+    public RekapAdapter(OnRekapClickListener listener) {
         super(DIFF_CALLBACK);
+        this.listener = listener;
     }
 
     private static final DiffUtil.ItemCallback<TagihanDetail> DIFF_CALLBACK = new DiffUtil.ItemCallback<TagihanDetail>() {
@@ -27,7 +35,8 @@ public class RekapAdapter extends ListAdapter<TagihanDetail, RekapAdapter.RekapV
         @Override
         public boolean areContentsTheSame(@NonNull TagihanDetail oldItem, @NonNull TagihanDetail newItem) {
             return oldItem.tagihan.getPemakaian() == newItem.tagihan.getPemakaian() &&
-                    oldItem.tagihan.getTotalBayar() == newItem.tagihan.getTotalBayar();
+                    oldItem.tagihan.getTotalBayar() == newItem.tagihan.getTotalBayar() &&
+                    oldItem.tagihan.isStatusBayar() == newItem.tagihan.isStatusBayar();
         }
     };
 
@@ -44,7 +53,7 @@ public class RekapAdapter extends ListAdapter<TagihanDetail, RekapAdapter.RekapV
         holder.bind(getItem(position), position + 1);
     }
 
-    static class RekapViewHolder extends RecyclerView.ViewHolder {
+    class RekapViewHolder extends RecyclerView.ViewHolder {
 
         private final ItemRekapBinding binding;
 
@@ -57,8 +66,21 @@ public class RekapAdapter extends ListAdapter<TagihanDetail, RekapAdapter.RekapV
             binding.tvNo.setText(String.valueOf(nomor));
             binding.tvNama.setText(item.pelanggan != null ? item.pelanggan.getNama() : "-");
             binding.tvDusun.setText(item.pelanggan != null ? item.pelanggan.getDusun() : "-");
-            binding.tvPemakaian.setText(item.tagihan.getPemakaian() + " m³");
-            binding.tvTotal.setText(FormatUtils.formatRupiah(item.tagihan.getTotalBayar()));
+            binding.tvPemakaian.setText(item.tagihan != null ? item.tagihan.getPemakaian() + " m³" : "0 m³");
+            binding.tvTotal.setText(FormatUtils.formatNominalSimpel(item.tagihan != null ? item.tagihan.getTotalBayar() : 0));
+
+            boolean isLunas = item.tagihan != null && item.tagihan.isStatusBayar();
+            if (isLunas) {
+                binding.tvStatusBadge.setText("LUNAS");
+                binding.tvStatusBadge.setTextColor(Color.parseColor("#00E676"));
+            } else {
+                binding.tvStatusBadge.setText("BELUM LUNAS");
+                binding.tvStatusBadge.setTextColor(Color.parseColor("#FF5252"));
+            }
+
+            itemView.setOnClickListener(v -> {
+                if (listener != null) listener.onItemClick(item);
+            });
         }
     }
 }
