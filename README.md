@@ -72,4 +72,4 @@ Aplikasi ini dirancang khusus untuk pengelola air minum **PAMDES "UTUH BERSATU" 
 ## 📷 Hak Cipta & Lisensi
 
 Dibuat khusus untuk pengelola air minum **PAMDES "UTUH BERSATU" Wanasaba Daya**.
-© 2026 PAMDES Wanasaba Daya. Hak Cipta Dilindungi Undang-Undang.
+© 2026 Sypdn. Hak Cipta Dilindungi Undang-Undang.
